@@ -3,18 +3,11 @@ import {
 } from 'express';
 import userRouter from './users';
 import cardRouter from './cards';
-import auth from '../middlewares/auth';
+
 import NotFoundError from '../errors/not-found-error';
-import {
-  createUser, login,
-} from '../controllers/users';
-import { validateUserBody, validateAuthentication } from '../middlewares/validatons';
 
 const router = Router();
-router.post('/signup', validateUserBody, createUser);
-router.post('/signin', validateAuthentication, login);
 
-router.use(auth);
 router.use('/users', userRouter);
 router.use('/cards', cardRouter);
 

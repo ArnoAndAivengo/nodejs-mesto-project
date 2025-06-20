@@ -1,5 +1,4 @@
 import mongoose, { ObjectId } from 'mongoose';
-import { urlRegExp } from '../middlewares/validatons';
 
 interface ICard {
   name: string;
@@ -19,10 +18,6 @@ const cardsSchema = new mongoose.Schema<ICard>({
   link: {
     type: String,
     required: [true, 'Поле "link" должно быть заполнено'],
-    validate: {
-      validator: (v: string) => urlRegExp.test(v),
-      message: 'Поле "link" должно быть валидным url-адресом.',
-    },
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,

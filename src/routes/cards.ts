@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { validateObjId, validateCardBody } from '../middlewares/validatons';
 
 const router = Router();
 const {
@@ -11,9 +10,9 @@ const {
 } = require('../controllers/cards');
 
 router.get('/', getCards);
-router.post('/', validateCardBody, createCard);
-router.delete('/:id', validateObjId, deleteCard);
-router.put('/:id/likes', validateObjId, likeCard);
-router.delete('/:id/likes', validateObjId, dislikeCard);
+router.post('/', createCard);
+router.delete('/:id', deleteCard);
+router.put('/:id/likes', likeCard);
+router.delete('/:id/likes', dislikeCard);
 
 export default router;
