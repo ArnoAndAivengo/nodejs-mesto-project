@@ -1,4 +1,4 @@
-import mongoose, { Model, Document, HydratedDocument } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
 interface IUser extends Document {
   name: string;

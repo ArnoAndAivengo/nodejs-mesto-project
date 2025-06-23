@@ -1,72 +1,87 @@
-import {
-  Request,
-  Response,
-  NextFunction,
-} from 'express';
+import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import User from '../models/user';
-import BadRequestError from '../errors/bad-request-error';
-import NotFoundError from '../errors/not-found-error';
 
-const createUser = (req: Request, res: Response, next: NextFunction) => {
-  const {
-    name, about, avatar,
-  } = req.body;
-
-  User.create({
-    name, about, avatar,
-  })
-    .then((data) => res.status(201).send(data))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError(err.message));
-      } else {
-        next(err);
-      }
-    });
+export const getUsers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const users = await User.find({});
+    res.send(users);
+  } catch (err) {
+    res.status(500).send({ message: 'На сервере произошла ошибка' });
+  }
 };
 
-const getUsersAll = (req: Request, res: Response, next: NextFunction) => {
-  User.find({})
-    .orFail(() => new NotFoundError('Пользователь по заданному id отсутствует в базе'))
-    .then((users) => res.send(users))
-    .catch(next);
+export const getUserById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      res.status(404).send({ message: 'Пользователь не найден' });
+      return;
+    }
+    res.send(user);
+  } catch (err) {
+    if (err instanceof mongoose.Error.CastError) {
+      res.status(400).send({ message: 'Некорректный ID пользователя' });
+      return;
+    }
+    res.status(500).send({ message: 'На сервере произошла ошибка' });
+  }
 };
 
-const getUserData = (id: string, res: Response, next: NextFunction) => {
-  User.findById(id)
-    .orFail(() => new NotFoundError('Пользователь по заданному id отсутствует в базе'))
-    .then((users) => res.send(users))
-    .catch(next);
+export const createUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, about, avatar } = req.body;
+    const user = await User.create({ name, about, avatar });
+    res.status(201).send(user);
+  } catch (err) {
+    if (err instanceof mongoose.Error.ValidationError) {
+      res.status(400).send({ message: err.message });
+      return;
+    }
+    res.status(500).send({ message: 'На сервере произошла ошибка' });
+  }
 };
 
-const getUser = (req: Request, res: Response, next: NextFunction) => {
-  getUserData(req.params.id, res, next);
+export const updateProfile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, about } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { name, about },
+      { new: true, runValidators: true },
+    );
+    if (!user) {
+      res.status(404).send({ message: 'Пользователь не найден' });
+      return;
+    }
+    res.send(user);
+  } catch (err) {
+    if (err instanceof mongoose.Error.ValidationError) {
+      res.status(400).send({ message: err.message });
+      return;
+    }
+    res.status(500).send({ message: 'На сервере произошла ошибка' });
+  }
 };
 
-const updateUserData = (req: Request, res: Response, next: NextFunction) => {
-  const { user: { _id }, body } = req;
-  User.findByIdAndUpdate(_id, body, { new: true, runValidators: true })
-    .orFail(() => new NotFoundError('Пользователь по заданному id отсутствует в базе'))
-    .then((user) => res.send(user))
-    .catch(next);
-};
-
-const updateUserInfo = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => updateUserData(req, res, next);
-
-const updateUserAvatar = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => updateUserData(req, res, next);
-
-export {
-  updateUserInfo,
-  updateUserAvatar,
-  createUser,
-  getUsersAll,
-  getUser,
+export const updateAvatar = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { avatar } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { avatar },
+      { new: true, runValidators: true },
+    );
+    if (!user) {
+      res.status(404).send({ message: 'Пользователь не найден' });
+      return;
+    }
+    res.send(user);
+  } catch (err) {
+    if (err instanceof mongoose.Error.ValidationError) {
+      res.status(400).send({ message: err.message });
+      return;
+    }
+    res.status(500).send({ message: 'На сервере произошла ошибка' });
+  }
 };
